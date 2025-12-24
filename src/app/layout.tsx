@@ -6,9 +6,6 @@ import { Toaster } from "@/components/ui/sonner";
 export const metadata: Metadata = {
   title: "TradeHub - Buy & Sell with Confidence",
   description: "TradeHub is the trusted P2P marketplace where buyers and sellers connect.",
-  icons: {
-    icon: "/shopping-cart-svgrepo-com.svg",
-  },
 };
 
 export default function RootLayout({
