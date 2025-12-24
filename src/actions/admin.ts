@@ -12,12 +12,12 @@ async function verifyAdmin() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single() as { data: { role: string } | null }
+    .select('id, role')
+    .eq('user_id', user.id)
+    .single() as { data: { id: string; role: string } | null }
 
   if (profile?.role !== 'ADMIN') throw new Error('Forbidden')
-  return user
+  return { authUser: user, profileId: profile.id }
 }
 
 export async function getAdminStats() {
@@ -201,14 +201,14 @@ export async function resolveDispute(disputeId: string, status: string, resoluti
 }
 
 export async function sendAdminDisputeMessage(disputeId: string, content: string) {
-  const user = await verifyAdmin()
+  const { profileId } = await verifyAdmin()
   const adminClient = createAdminClient()
 
   const { error } = await adminClient
     .from('dispute_messages')
     .insert({
       dispute_id: disputeId,
-      author_id: user.id,
+      author_id: profileId,
       content
     } as never)
 

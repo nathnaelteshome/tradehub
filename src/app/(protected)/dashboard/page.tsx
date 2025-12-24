@@ -2,17 +2,22 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Package, ShoppingBag, DollarSign, AlertTriangle } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import { getProfile } from '@/lib/auth/get-profile'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { profile } = await getProfile()
 
-  // Get stats
+  if (!profile) {
+    return <div>Error loading profile</div>
+  }
+
+  // Get stats using profile.id (not auth user id)
   const [productsResult, ordersResult, salesResult, disputesResult] = await Promise.all([
-    supabase.from('products').select('id', { count: 'exact' }).eq('seller_id', user!.id),
-    supabase.from('orders').select('id, total_amount', { count: 'exact' }).eq('buyer_id', user!.id),
-    supabase.from('orders').select('id, total_amount', { count: 'exact' }).eq('seller_id', user!.id),
-    supabase.from('disputes').select('id', { count: 'exact' }).eq('opened_by_id', user!.id).eq('status', 'OPEN'),
+    supabase.from('products').select('id', { count: 'exact' }).eq('seller_id', profile.id),
+    supabase.from('orders').select('id, total_amount', { count: 'exact' }).eq('buyer_id', profile.id),
+    supabase.from('orders').select('id, total_amount', { count: 'exact' }).eq('seller_id', profile.id),
+    supabase.from('disputes').select('id', { count: 'exact' }).eq('opened_by_id', profile.id).eq('status', 'OPEN'),
   ])
 
   const totalProducts = productsResult.count || 0

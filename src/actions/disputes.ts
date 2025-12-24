@@ -145,19 +145,27 @@ export async function getMyDisputes() {
 
   if (!profile) throw new Error('Profile not found')
 
-  // Get disputes where user is buyer or seller
+  // First, get order IDs where user is buyer or seller
+  const { data: userOrders } = await supabase
+    .from('orders')
+    .select('id')
+    .or(`buyer_id.eq.${profile.id},seller_id.eq.${profile.id}`)
+
+  const orderIds = userOrders?.map(o => o.id) || []
+
+  // Get disputes where user opened it OR is involved in the order
   const { data, error } = await supabase
     .from('disputes')
     .select(`
       *,
-      order:orders!inner(*, buyer:profiles!buyer_id(*), seller:profiles!seller_id(*)),
+      order:orders(*, buyer:profiles!buyer_id(*), seller:profiles!seller_id(*)),
       opened_by:profiles!opened_by_id(*)
     `)
-    .or(`opened_by_id.eq.${profile.id},order.buyer_id.eq.${profile.id},order.seller_id.eq.${profile.id}`)
+    .or(`opened_by_id.eq.${profile.id}${orderIds.length > 0 ? `,order_id.in.(${orderIds.join(',')})` : ''}`)
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data
+  return data || []
 }
 
 export async function getDispute(id: string) {
@@ -170,14 +178,17 @@ export async function getDispute(id: string) {
     .from('disputes')
     .select(`
       *,
-      order:orders!inner(*, buyer:profiles!buyer_id(*), seller:profiles!seller_id(*)),
+      order:orders(*, buyer:profiles!buyer_id(*), seller:profiles!seller_id(*)),
       opened_by:profiles!opened_by_id(*),
       dispute_messages(*, author:profiles(*))
     `)
     .eq('id', id)
     .single()
 
-  if (error) throw error
+  if (error) {
+    console.error('Error fetching dispute:', error)
+    throw error
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dispute = data as any

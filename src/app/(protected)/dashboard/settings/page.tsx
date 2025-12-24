@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getInitials } from '@/lib/utils'
+import { getProfile } from '@/lib/auth/get-profile'
 
 async function updateProfile(formData: FormData): Promise<void> {
   'use server'
@@ -20,23 +21,17 @@ async function updateProfile(formData: FormData): Promise<void> {
   await supabase
     .from('profiles')
     .update({ name } as never)
-    .eq('id', user.id)
+    .eq('user_id', user.id)
 
   revalidatePath('/dashboard/settings')
 }
 
 export default async function SettingsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { profile } = await getProfile()
 
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user!.id)
-    .single()
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const profile = profileData as any
+  if (!profile) {
+    redirect('/auth/login')
+  }
 
   return (
     <div>
