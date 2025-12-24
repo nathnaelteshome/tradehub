@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { ProductGrid } from '@/components/products/product-grid'
 import { getFeaturedProducts } from '@/actions/products'
 import { getProfile } from '@/lib/auth/get-profile'
-import { ArrowRight, ShoppingBag, Shield, TrendingUp, Check } from 'lucide-react'
+import { ArrowRight, ShoppingBag, Shield, TrendingUp, Check, Sparkles } from 'lucide-react'
 
 export default async function HomePage() {
   const [products, { profile }] = await Promise.all([
@@ -14,26 +14,43 @@ export default async function HomePage() {
   const isLoggedIn = !!profile
 
   return (
-    <div>
+    <div className="grain">
       {/* Hero Section - Clean & Minimal */}
       <section className="py-24 md:py-32 px-4 relative overflow-hidden min-h-[85vh] flex items-center">
-        {/* Subtle background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/30 to-background -z-10" />
+        {/* Layered background effects */}
+        <div className="absolute inset-0 bg-gradient-to-b from-muted/40 via-background to-background -z-10" />
+        <div className="absolute inset-0 dot-grid -z-10 opacity-50" />
+
+        {/* Subtle floating orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-muted/30 rounded-full blur-3xl -z-10 animate-float-slow" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-muted/20 rounded-full blur-3xl -z-10 animate-float" />
 
         {/* Floating 3D Cards - Left Side */}
         <div className="absolute left-[5%] top-[25%] hidden lg:block animate-float">
-          <div className="glass rounded-2xl p-4 w-48 tilt-3d">
-            <div className="w-full h-24 bg-muted rounded-lg mb-3" />
+          <div className="glass rounded-2xl p-4 w-48 tilt-3d glow-hover">
+            <div className="w-full h-24 bg-gradient-to-br from-muted to-muted/50 rounded-lg mb-3 inner-shadow" />
             <div className="h-3 bg-muted-foreground/20 rounded w-3/4 mb-2" />
             <div className="h-2 bg-muted-foreground/10 rounded w-1/2" />
           </div>
         </div>
 
+        {/* Additional floating element - Left bottom */}
+        <div className="absolute left-[8%] bottom-[25%] hidden xl:block animate-float-slow">
+          <div className="glass-subtle rounded-xl p-3 w-32">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-primary" />
+              </div>
+              <div className="h-2 bg-muted-foreground/20 rounded w-12" />
+            </div>
+          </div>
+        </div>
+
         {/* Floating 3D Cards - Right Side */}
         <div className="absolute right-[5%] top-[20%] hidden lg:block animate-float-reverse">
-          <div className="glass rounded-2xl p-4 w-44 tilt-3d-reverse">
+          <div className="glass rounded-2xl p-4 w-44 tilt-3d-reverse glow-hover">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-muted" />
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-muted to-muted/50 inner-shadow" />
               <div>
                 <div className="h-2 bg-muted-foreground/20 rounded w-16 mb-1" />
                 <div className="h-2 bg-muted-foreground/10 rounded w-12" />
@@ -43,27 +60,53 @@ export default async function HomePage() {
           </div>
         </div>
 
+        {/* Additional floating element - Right bottom */}
+        <div className="absolute right-[10%] bottom-[30%] hidden xl:block animate-float">
+          <div className="glass-subtle rounded-xl p-3 w-36">
+            <div className="flex items-center justify-between mb-2">
+              <div className="h-2 bg-muted-foreground/20 rounded w-16" />
+              <Check className="w-4 h-4 text-primary" />
+            </div>
+            <div className="h-1.5 bg-primary/20 rounded-full">
+              <div className="h-1.5 bg-primary/60 rounded-full w-3/4" />
+            </div>
+          </div>
+        </div>
+
         {/* Main Content */}
         <div className="container mx-auto text-center relative z-10">
+          {/* Badge */}
+          <div className="animate-fade-in-up mb-6">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium bg-primary/5 border border-primary/10 text-primary">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-subtle" />
+              Trusted by thousands of traders
+            </span>
+          </div>
+
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight animate-fade-in-up">
             Buy & Sell with
             <br />
-            <span className="text-primary">Confidence</span>
+            <span className="relative">
+              <span className="text-primary">Confidence</span>
+              <svg className="absolute -bottom-2 left-0 w-full h-3 text-primary/20" viewBox="0 0 200 12" preserveAspectRatio="none">
+                <path d="M0,8 Q50,0 100,8 T200,8" fill="none" stroke="currentColor" strokeWidth="3" />
+              </svg>
+            </span>
           </h1>
 
-          <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in-up delay-100">
+          <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in-up delay-100 leading-relaxed">
             TradeHub is the trusted marketplace where buyers and sellers connect.
             List your items, find great deals, and trade with peace of mind.
           </p>
 
           <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-200">
-            <Button size="lg" className="text-lg px-8 py-6" asChild>
+            <Button size="lg" className="text-lg px-8 py-6 hover-lift group" asChild>
               <Link href="/products">
                 Browse Products
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6" asChild>
+            <Button size="lg" variant="outline" className="text-lg px-8 py-6 hover-lift" asChild>
               <Link href={isLoggedIn ? "/dashboard/products/new" : "/auth/register"}>
                 Start Selling
               </Link>
@@ -71,21 +114,30 @@ export default async function HomePage() {
           </div>
 
           {/* Trust indicators */}
-          <div className="mt-16 flex flex-wrap items-center justify-center gap-6 text-muted-foreground animate-fade-in-up delay-300">
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4" />
-              <span className="text-sm">Secure Payments</span>
+          <div className="mt-16 flex flex-wrap items-center justify-center gap-8 text-muted-foreground animate-fade-in-up delay-300">
+            <div className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                <Check className="w-4 h-4 text-primary" />
+              </div>
+              <span className="text-sm font-medium">Secure Payments</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4" />
-              <span className="text-sm">Fast Transactions</span>
+            <div className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                <Check className="w-4 h-4 text-primary" />
+              </div>
+              <span className="text-sm font-medium">Fast Transactions</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4" />
-              <span className="text-sm">Verified Sellers</span>
+            <div className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                <Check className="w-4 h-4 text-primary" />
+              </div>
+              <span className="text-sm font-medium">Verified Sellers</span>
             </div>
           </div>
         </div>
+
+        {/* Bottom gradient fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent -z-5" />
       </section>
 
       {/* Features Section */}
