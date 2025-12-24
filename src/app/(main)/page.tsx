@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button'
 import { ProductGrid } from '@/components/products/product-grid'
 import { getFeaturedProducts } from '@/actions/products'
 import { getProfile } from '@/lib/auth/get-profile'
-import { ArrowRight, ShoppingBag, Shield, TrendingUp, Users, DollarSign, Package } from 'lucide-react'
-import { AnimatedCounter } from '@/components/shared/animated-counter'
+import { ArrowRight, ShoppingBag, Shield, TrendingUp, Check } from 'lucide-react'
 
 export default async function HomePage() {
   const [products, { profile }] = await Promise.all([
@@ -16,81 +15,90 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Hero Section - Enhanced */}
-      <section className="py-24 px-4 relative overflow-hidden">
-        {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5 -z-10" />
+      {/* Hero Section - Clean & Minimal */}
+      <section className="py-24 md:py-32 px-4 relative overflow-hidden min-h-[85vh] flex items-center">
+        {/* Subtle background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-muted/30 to-background -z-10" />
 
-        {/* Decorative blurred orbs */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl -z-10" />
+        {/* Floating 3D Cards - Left Side */}
+        <div className="absolute left-[5%] top-[25%] hidden lg:block animate-float">
+          <div className="glass rounded-2xl p-4 w-48 tilt-3d">
+            <div className="w-full h-24 bg-muted rounded-lg mb-3" />
+            <div className="h-3 bg-muted-foreground/20 rounded w-3/4 mb-2" />
+            <div className="h-2 bg-muted-foreground/10 rounded w-1/2" />
+          </div>
+        </div>
 
-        <div className="container mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight animate-fade-in-up">
-            Buy & Sell with <span className="text-primary">Confidence</span>
+        {/* Floating 3D Cards - Right Side */}
+        <div className="absolute right-[5%] top-[20%] hidden lg:block animate-float-reverse">
+          <div className="glass rounded-2xl p-4 w-44 tilt-3d-reverse">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-muted" />
+              <div>
+                <div className="h-2 bg-muted-foreground/20 rounded w-16 mb-1" />
+                <div className="h-2 bg-muted-foreground/10 rounded w-12" />
+              </div>
+            </div>
+            <div className="h-2 bg-muted-foreground/10 rounded w-full" />
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="container mx-auto text-center relative z-10">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight animate-fade-in-up">
+            Buy & Sell with
+            <br />
+            <span className="text-primary">Confidence</span>
           </h1>
-          <p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in-up delay-100">
+
+          <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-in-up delay-100">
             TradeHub is the trusted marketplace where buyers and sellers connect.
             List your items, find great deals, and trade with peace of mind.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-200">
-            <Button size="lg" className="glow-sm hover:glow transition-shadow" asChild>
+
+          <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-200">
+            <Button size="lg" className="text-lg px-8 py-6" asChild>
               <Link href="/products">
                 Browse Products
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="glass-subtle hover:bg-background/80" asChild>
+            <Button size="lg" variant="outline" className="text-lg px-8 py-6" asChild>
               <Link href={isLoggedIn ? "/dashboard/products/new" : "/auth/register"}>
                 Start Selling
               </Link>
             </Button>
           </div>
-        </div>
-      </section>
 
-      {/* Stats Section - NEW */}
-      <section className="py-16 px-4 border-y border-border/50">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="glass-subtle rounded-2xl p-8 text-center hover:scale-105 transition-transform">
-              <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Users className="h-7 w-7 text-primary" />
-              </div>
-              <div className="text-4xl font-bold text-primary">
-                <AnimatedCounter end={12500} suffix="+" />
-              </div>
-              <p className="mt-2 text-muted-foreground font-medium">Active Users</p>
+          {/* Trust indicators */}
+          <div className="mt-16 flex flex-wrap items-center justify-center gap-6 text-muted-foreground animate-fade-in-up delay-300">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4" />
+              <span className="text-sm">Secure Payments</span>
             </div>
-
-            <div className="glass-subtle rounded-2xl p-8 text-center hover:scale-105 transition-transform">
-              <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <DollarSign className="h-7 w-7 text-primary" />
-              </div>
-              <div className="text-4xl font-bold text-primary">
-                <AnimatedCounter end={2500000} prefix="$" suffix="+" />
-              </div>
-              <p className="mt-2 text-muted-foreground font-medium">Transactions</p>
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4" />
+              <span className="text-sm">Fast Transactions</span>
             </div>
-
-            <div className="glass-subtle rounded-2xl p-8 text-center hover:scale-105 transition-transform">
-              <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Package className="h-7 w-7 text-primary" />
-              </div>
-              <div className="text-4xl font-bold text-primary">
-                <AnimatedCounter end={48000} suffix="+" />
-              </div>
-              <p className="mt-2 text-muted-foreground font-medium">Products Sold</p>
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4" />
+              <span className="text-sm">Verified Sellers</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section - Glass Cards */}
-      <section className="py-16 px-4">
+      {/* Features Section */}
+      <section className="py-20 px-4 border-t">
         <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold">Why Choose TradeHub?</h2>
+            <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
+              Everything you need for a seamless trading experience
+            </p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="glass-subtle rounded-2xl text-center p-8 hover:scale-105 transition-transform">
+            <div className="glass-subtle rounded-2xl text-center p-8 hover:scale-[1.02] transition-transform">
               <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <ShoppingBag className="h-7 w-7 text-primary" />
               </div>
@@ -99,7 +107,7 @@ export default async function HomePage() {
                 List your items in minutes with our simple listing process.
               </p>
             </div>
-            <div className="glass-subtle rounded-2xl text-center p-8 hover:scale-105 transition-transform">
+            <div className="glass-subtle rounded-2xl text-center p-8 hover:scale-[1.02] transition-transform">
               <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Shield className="h-7 w-7 text-primary" />
               </div>
@@ -108,7 +116,7 @@ export default async function HomePage() {
                 Our dispute resolution system protects both buyers and sellers.
               </p>
             </div>
-            <div className="glass-subtle rounded-2xl text-center p-8 hover:scale-105 transition-transform">
+            <div className="glass-subtle rounded-2xl text-center p-8 hover:scale-[1.02] transition-transform">
               <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <TrendingUp className="h-7 w-7 text-primary" />
               </div>
@@ -122,11 +130,14 @@ export default async function HomePage() {
       </section>
 
       {/* Featured Products - Glass background */}
-      <section className="py-16 px-4 relative">
+      <section className="py-20 px-4 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/30 to-transparent -z-10" />
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold">Featured Products</h2>
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold">Featured Products</h2>
+              <p className="text-muted-foreground mt-1">Discover amazing deals today</p>
+            </div>
             <Button variant="ghost" asChild>
               <Link href="/products">
                 View all
@@ -138,16 +149,16 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section - Glass card */}
+      {/* CTA Section */}
       {!isLoggedIn && (
         <section className="py-20 px-4">
           <div className="container mx-auto">
             <div className="glass rounded-3xl p-12 text-center max-w-3xl mx-auto">
-              <h2 className="text-3xl font-bold">Ready to start trading?</h2>
+              <h2 className="text-3xl md:text-4xl font-bold">Ready to start trading?</h2>
               <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
                 Join TradeHub today and become part of our growing marketplace community.
               </p>
-              <Button size="lg" className="mt-8 glow-sm hover:glow transition-shadow" asChild>
+              <Button size="lg" className="mt-8 text-lg px-8" asChild>
                 <Link href="/auth/register">Create Free Account</Link>
               </Button>
             </div>
