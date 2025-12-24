@@ -18,6 +18,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const supabase = await createClient()
 
+    // Get profile ID from user_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile) {
+      return errorResponse('Profile not found', 'Profile required', 404)
+    }
+
     const { data, error } = await supabase
       .from('disputes')
       .select(
@@ -43,8 +54,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Verify user is authorized (buyer, seller, or admin)
     if (
-      data.order.buyer_id !== user.id &&
-      data.order.seller_id !== user.id &&
+      data.order.buyer_id !== profile.id &&
+      data.order.seller_id !== profile.id &&
       user.role !== 'ADMIN'
     ) {
       return errorResponse('Not authorized', 'You cannot view this dispute', 403)

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -36,33 +37,47 @@ export function Header({ user }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="text-xl font-bold text-primary">
-            TradeHub
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+        {/* Logo */}
+        <div className="flex items-center">
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+            <Image
+              src="/shopping-cart-svgrepo-com.svg"
+              alt="TradeHub Logo"
+              width={32}
+              height={32}
+              className="h-8 w-8"
+            />
+            <span className="hidden sm:inline">TradeHub</span>
           </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm transition-colors hover:text-foreground ${
-                  pathname === link.href ? 'text-foreground' : 'text-muted-foreground'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Center Navigation */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
+                pathname === link.href
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Right Actions */}
+        <div className="flex items-center gap-3">
           <ThemeToggle />
+
           <Link href="/cart" className="relative">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="rounded-full">
               <ShoppingCart className="h-5 w-5" />
               {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium">
                   {itemCount}
                 </span>
               )}
@@ -72,35 +87,43 @@ export function Header({ user }: HeaderProps) {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all">
+                  <Avatar className="h-9 w-9">
                     <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
-                    <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                      {getInitials(user.name)}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end">
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
+              <DropdownMenuContent className="w-56" align="end" sideOffset={8}>
+                <div className="flex items-center gap-3 p-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={user.avatar_url || undefined} alt={user.name} />
+                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                      {getInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col space-y-0.5 leading-none">
                     <p className="font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[140px]">{user.email}</p>
                   </div>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard">
+                  <Link href="/dashboard" className="cursor-pointer">
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     Dashboard
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/products">
+                  <Link href="/dashboard/products" className="cursor-pointer">
                     <Package className="mr-2 h-4 w-4" />
                     My Products
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard/settings">
+                  <Link href="/dashboard/settings" className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </Link>
@@ -109,7 +132,7 @@ export function Header({ user }: HeaderProps) {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/admin">
+                      <Link href="/admin" className="cursor-pointer">
                         <User className="mr-2 h-4 w-4" />
                         Admin Panel
                       </Link>
@@ -117,9 +140,9 @@ export function Header({ user }: HeaderProps) {
                   </>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
+                <DropdownMenuItem asChild className="text-destructive focus:text-destructive">
                   <form action={logout}>
-                    <button className="flex w-full items-center">
+                    <button className="flex w-full items-center cursor-pointer">
                       <LogOut className="mr-2 h-4 w-4" />
                       Log out
                     </button>
@@ -128,11 +151,11 @@ export function Header({ user }: HeaderProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="hidden sm:flex items-center gap-2">
-              <Button variant="ghost" asChild>
+            <div className="hidden sm:flex items-center gap-2 ml-2">
+              <Button variant="ghost" size="sm" asChild className="rounded-full">
                 <Link href="/auth/login">Sign in</Link>
               </Button>
-              <Button asChild>
+              <Button size="sm" asChild className="rounded-full">
                 <Link href="/auth/register">Get started</Link>
               </Button>
             </div>
@@ -141,7 +164,7 @@ export function Header({ user }: HeaderProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden rounded-full"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -151,14 +174,16 @@ export function Header({ user }: HeaderProps) {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t">
-          <nav className="container py-4 flex flex-col gap-4">
+        <div className="md:hidden border-t bg-background">
+          <nav className="flex flex-col p-4 space-y-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm transition-colors hover:text-foreground ${
-                  pathname === link.href ? 'text-foreground' : 'text-muted-foreground'
+                className={`px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                  pathname === link.href
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -166,11 +191,11 @@ export function Header({ user }: HeaderProps) {
               </Link>
             ))}
             {!user && (
-              <div className="flex flex-col gap-2 pt-4 border-t">
-                <Button variant="ghost" asChild>
+              <div className="flex flex-col gap-2 pt-4 mt-2 border-t">
+                <Button variant="outline" asChild className="justify-center">
                   <Link href="/auth/login">Sign in</Link>
                 </Button>
-                <Button asChild>
+                <Button asChild className="justify-center">
                   <Link href="/auth/register">Get started</Link>
                 </Button>
               </div>

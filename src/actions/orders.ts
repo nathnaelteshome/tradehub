@@ -26,6 +26,17 @@ export async function createOrder(
     return { error: 'Unauthorized' }
   }
 
+  // Get profile ID from user_id
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!profile) {
+    return { error: 'Profile not found' }
+  }
+
   const validated = shippingSchema.safeParse(shippingData)
   if (!validated.success) {
     return { error: validated.error.issues[0].message }
@@ -38,7 +49,7 @@ export async function createOrder(
     .from('orders')
     .insert({
       order_number: generateOrderNumber(),
-      buyer_id: user.id,
+      buyer_id: profile.id,
       seller_id: sellerId,
       total_amount: totalAmount,
       shipping_address: validated.data
@@ -107,10 +118,19 @@ export async function getMyOrders() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  // Get profile ID from user_id
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!profile) throw new Error('Profile not found')
+
   const { data, error } = await supabase
     .from('orders')
     .select('*, order_items(*, product:products(*)), seller:profiles!seller_id(*)')
-    .eq('buyer_id', user.id)
+    .eq('buyer_id', profile.id)
     .order('created_at', { ascending: false })
 
   if (error) throw error
@@ -123,10 +143,19 @@ export async function getMySales() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  // Get profile ID from user_id
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!profile) throw new Error('Profile not found')
+
   const { data, error } = await supabase
     .from('orders')
     .select('*, order_items(*, product:products(*)), buyer:profiles!buyer_id(*)')
-    .eq('seller_id', user.id)
+    .eq('seller_id', profile.id)
     .order('created_at', { ascending: false })
 
   if (error) throw error

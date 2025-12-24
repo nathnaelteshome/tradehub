@@ -17,6 +17,7 @@ export interface Database {
       profiles: {
         Row: {
           id: string
+          user_id: string
           email: string
           name: string
           avatar_url: string | null
@@ -26,7 +27,8 @@ export interface Database {
           updated_at: string
         }
         Insert: {
-          id: string
+          id?: string
+          user_id: string
           email: string
           name: string
           avatar_url?: string | null

@@ -10,178 +10,163 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   }
 })
 
+// Real user IDs from auth.users
+const USERS = {
+  JOHN_WICK_GOOGLE: '9b6b2b7b-d040-41cb-92aa-0a8c5c920cb0',
+  JOHN_WICK_EMAIL: 'd9ee1786-7664-42c9-8fc8-7963eef56b08',
+  NATHNAEL: '4fe4b5a0-73c8-4028-9af7-4e3d7871e9ad',
+}
+
 async function seed() {
   console.log('🌱 Starting database seed...\n')
 
-  // 1. Create users
-  console.log('Creating users...')
-  const { error: usersError } = await supabase.from('users').upsert([
-    {
-      id: '11111111-1111-1111-1111-111111111111',
-      email: 'seller1@example.com',
-      password_hash: '$2a$10$rQEY7xQxKqWzVxKTmJQz8eHGZZ7X6B5v3KqQz8eHGZZ7X6B5v3Kq',
-      email_verified: true
-    },
-    {
-      id: '22222222-2222-2222-2222-222222222222',
-      email: 'seller2@example.com',
-      password_hash: '$2a$10$rQEY7xQxKqWzVxKTmJQz8eHGZZ7X6B5v3KqQz8eHGZZ7X6B5v3Kq',
-      email_verified: true
-    },
-    {
-      id: '33333333-3333-3333-3333-333333333333',
-      email: 'buyer1@example.com',
-      password_hash: '$2a$10$rQEY7xQxKqWzVxKTmJQz8eHGZZ7X6B5v3KqQz8eHGZZ7X6B5v3Kq',
-      email_verified: true
-    }
-  ], { onConflict: 'id' })
+  // 1. Fetch existing profiles (created from auth.users)
+  console.log('Fetching profiles...')
+  const { data: existingProfiles, error: fetchError } = await supabase
+    .from('profiles')
+    .select('*')
 
-  if (usersError) {
-    console.error('Error creating users:', usersError.message)
+  if (fetchError) {
+    console.error('Error fetching profiles:', fetchError.message)
     return
   }
-  console.log('✅ Users created\n')
 
-  // 2. Create profiles
-  console.log('Creating profiles...')
-  const { error: profilesError } = await supabase.from('profiles').upsert([
-    {
-      id: 'aaaa1111-aaaa-1111-aaaa-111111111111',
-      user_id: '11111111-1111-1111-1111-111111111111',
-      email: 'seller1@example.com',
-      name: 'Tech Store',
-      role: 'USER'
-    },
-    {
-      id: 'bbbb2222-bbbb-2222-bbbb-222222222222',
-      user_id: '22222222-2222-2222-2222-222222222222',
-      email: 'seller2@example.com',
-      name: 'Fashion Hub',
-      role: 'USER'
-    },
-    {
-      id: 'cccc3333-cccc-3333-cccc-333333333333',
-      user_id: '33333333-3333-3333-3333-333333333333',
-      email: 'buyer1@example.com',
-      name: 'John Buyer',
-      role: 'USER'
-    }
-  ], { onConflict: 'id' })
+  // Check if profiles exist for our users
+  const profiles = {
+    seller1: existingProfiles?.find(p => p.user_id === USERS.JOHN_WICK_GOOGLE),
+    seller2: existingProfiles?.find(p => p.user_id === USERS.JOHN_WICK_EMAIL),
+    buyer: existingProfiles?.find(p => p.user_id === USERS.NATHNAEL),
+  }
 
-  if (profilesError) {
-    console.error('Error creating profiles:', profilesError.message)
+  if (!profiles.seller1 || !profiles.seller2 || !profiles.buyer) {
+    console.error('Missing profiles. Make sure all users have signed in at least once.')
+    console.log('Found profiles:', existingProfiles?.map(p => ({ id: p.id, user_id: p.user_id, name: p.name })))
     return
   }
-  console.log('✅ Profiles created\n')
+
+  console.log('✅ Profiles found:')
+  console.log(`   - Seller 1: ${profiles.seller1.name} (${profiles.seller1.id})`)
+  console.log(`   - Seller 2: ${profiles.seller2.name} (${profiles.seller2.id})`)
+  console.log(`   - Buyer: ${profiles.buyer.name} (${profiles.buyer.id})\n`)
+
+  // 2. Clear existing data (in correct order)
+  console.log('Clearing existing data...')
+  await supabase.from('dispute_messages').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+  await supabase.from('disputes').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+  await supabase.from('order_items').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+  await supabase.from('orders').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+  await supabase.from('reviews').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+  await supabase.from('products').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+  console.log('✅ Existing data cleared\n')
 
   // 3. Create products
   console.log('Creating products...')
   const products = [
     {
-      seller_id: 'aaaa1111-aaaa-1111-aaaa-111111111111',
+      seller_id: profiles.seller1.id,
       title: 'iPhone 14 Pro Max',
       description: 'Excellent condition iPhone 14 Pro Max, 256GB, Deep Purple. Comes with original box and accessories. Battery health at 95%.',
       price: 899.99,
-      images: ['https://picsum.photos/seed/iphone/400/400'],
+      images: ['https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=500&h=500&fit=crop&crop=center'],
       category: 'Electronics',
       condition: 'LIKE_NEW',
       quantity: 2,
       active: true
     },
     {
-      seller_id: 'aaaa1111-aaaa-1111-aaaa-111111111111',
+      seller_id: profiles.seller1.id,
       title: 'MacBook Pro 14" M3',
       description: 'Brand new MacBook Pro 14-inch with M3 chip, 16GB RAM, 512GB SSD. Sealed in box.',
       price: 1999.00,
-      images: ['https://picsum.photos/seed/macbook/400/400'],
+      images: ['https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&h=500&fit=crop&crop=center'],
       category: 'Electronics',
       condition: 'NEW',
       quantity: 1,
       active: true
     },
     {
-      seller_id: 'aaaa1111-aaaa-1111-aaaa-111111111111',
+      seller_id: profiles.seller1.id,
       title: 'Sony WH-1000XM5 Headphones',
       description: 'Premium noise-canceling headphones. Lightly used for 2 months. Includes carrying case and cables.',
       price: 275.00,
-      images: ['https://picsum.photos/seed/headphones/400/400'],
+      images: ['https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=500&h=500&fit=crop&crop=center'],
       category: 'Electronics',
       condition: 'GOOD',
       quantity: 3,
       active: true
     },
     {
-      seller_id: 'aaaa1111-aaaa-1111-aaaa-111111111111',
+      seller_id: profiles.seller1.id,
       title: 'Nintendo Switch OLED',
       description: 'Nintendo Switch OLED Model - White. Includes dock, Joy-Cons, and 3 games.',
       price: 320.00,
-      images: ['https://picsum.photos/seed/switch/400/400'],
+      images: ['https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=500&h=500&fit=crop&crop=center'],
       category: 'Electronics',
       condition: 'LIKE_NEW',
       quantity: 1,
       active: true
     },
     {
-      seller_id: 'bbbb2222-bbbb-2222-bbbb-222222222222',
+      seller_id: profiles.seller2.id,
       title: "Vintage Levi's 501 Jeans",
       description: "Authentic vintage Levi's 501 jeans from the 90s. Size 32x32. Great fade and character.",
       price: 85.00,
-      images: ['https://picsum.photos/seed/jeans/400/400'],
+      images: ['https://images.unsplash.com/photo-1542272604-787c3835535d?w=500&h=500&fit=crop&crop=center'],
       category: 'Clothing',
       condition: 'GOOD',
       quantity: 1,
       active: true
     },
     {
-      seller_id: 'bbbb2222-bbbb-2222-bbbb-222222222222',
+      seller_id: profiles.seller2.id,
       title: 'Nike Air Jordan 1 Retro High',
       description: 'Brand new Nike Air Jordan 1 Retro High OG. Size 10 US. Never worn, with original box.',
       price: 189.00,
-      images: ['https://picsum.photos/seed/jordan/400/400'],
+      images: ['https://images.unsplash.com/photo-1597045566677-8cf032ed6634?w=500&h=500&fit=crop&crop=center'],
       category: 'Clothing',
       condition: 'NEW',
       quantity: 2,
       active: true
     },
     {
-      seller_id: 'bbbb2222-bbbb-2222-bbbb-222222222222',
+      seller_id: profiles.seller2.id,
       title: 'Patagonia Fleece Jacket',
       description: 'Classic Patagonia Better Sweater fleece jacket in navy. Size Medium. Minimal wear.',
       price: 95.00,
-      images: ['https://picsum.photos/seed/fleece/400/400'],
+      images: ['https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=500&h=500&fit=crop&crop=center'],
       category: 'Clothing',
       condition: 'LIKE_NEW',
       quantity: 1,
       active: true
     },
     {
-      seller_id: 'aaaa1111-aaaa-1111-aaaa-111111111111',
+      seller_id: profiles.seller1.id,
       title: 'Herman Miller Aeron Chair',
       description: 'Size B Herman Miller Aeron chair. Fully loaded with all adjustments. Some wear on armrests.',
       price: 650.00,
-      images: ['https://picsum.photos/seed/chair/400/400'],
+      images: ['https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=500&h=500&fit=crop&crop=center'],
       category: 'Home & Garden',
       condition: 'FAIR',
       quantity: 1,
       active: true
     },
     {
-      seller_id: 'bbbb2222-bbbb-2222-bbbb-222222222222',
+      seller_id: profiles.seller2.id,
       title: 'Complete Python Programming Book Set',
       description: 'Collection of 5 Python programming books including Fluent Python, Python Crash Course, and more.',
       price: 75.00,
-      images: ['https://picsum.photos/seed/books/400/400'],
+      images: ['https://images.unsplash.com/photo-1532012197267-da84d127e765?w=500&h=500&fit=crop&crop=center'],
       category: 'Books',
       condition: 'GOOD',
       quantity: 1,
       active: true
     },
     {
-      seller_id: 'aaaa1111-aaaa-1111-aaaa-111111111111',
+      seller_id: profiles.seller1.id,
       title: 'Peloton Bike+',
       description: 'Peloton Bike+ with rotating screen. Includes mat, weights, and heart rate monitor. 500 rides on it.',
       price: 1500.00,
-      images: ['https://picsum.photos/seed/peloton/400/400'],
+      images: ['https://images.unsplash.com/photo-1591291621164-2c6367723315?w=500&h=500&fit=crop&crop=center'],
       category: 'Sports',
       condition: 'GOOD',
       quantity: 1,
@@ -189,7 +174,10 @@ async function seed() {
     }
   ]
 
-  const { error: productsError } = await supabase.from('products').insert(products)
+  const { data: insertedProducts, error: productsError } = await supabase
+    .from('products')
+    .insert(products)
+    .select()
 
   if (productsError) {
     console.error('Error creating products:', productsError.message)
@@ -199,44 +187,45 @@ async function seed() {
 
   // 4. Create orders
   console.log('Creating orders...')
-  const { error: ordersError } = await supabase.from('orders').upsert([
+  const orders = [
     {
-      id: 'dddd1111-dddd-1111-dddd-111111111111',
       order_number: 'ORD-2024-001',
       status: 'DELIVERED',
       total_amount: 1174.99,
       shipping_address: { street: '123 Main St', city: 'San Francisco', state: 'CA', zip: '94102', country: 'USA' },
-      buyer_id: 'cccc3333-cccc-3333-cccc-333333333333',
-      seller_id: 'aaaa1111-aaaa-1111-aaaa-111111111111'
+      buyer_id: profiles.buyer.id,
+      seller_id: profiles.seller1.id
     },
     {
-      id: 'dddd2222-dddd-2222-dddd-222222222222',
       order_number: 'ORD-2024-002',
       status: 'SHIPPED',
       total_amount: 320.00,
       shipping_address: { street: '123 Main St', city: 'San Francisco', state: 'CA', zip: '94102', country: 'USA' },
-      buyer_id: 'cccc3333-cccc-3333-cccc-333333333333',
-      seller_id: 'aaaa1111-aaaa-1111-aaaa-111111111111'
+      buyer_id: profiles.buyer.id,
+      seller_id: profiles.seller1.id
     },
     {
-      id: 'dddd3333-dddd-3333-dddd-333333333333',
       order_number: 'ORD-2024-003',
       status: 'DELIVERED',
       total_amount: 274.00,
       shipping_address: { street: '123 Main St', city: 'San Francisco', state: 'CA', zip: '94102', country: 'USA' },
-      buyer_id: 'cccc3333-cccc-3333-cccc-333333333333',
-      seller_id: 'bbbb2222-bbbb-2222-bbbb-222222222222'
+      buyer_id: profiles.buyer.id,
+      seller_id: profiles.seller2.id
     },
     {
-      id: 'dddd4444-dddd-4444-dddd-444444444444',
       order_number: 'ORD-2024-004',
       status: 'PENDING',
       total_amount: 1999.00,
       shipping_address: { street: '456 Oak Ave', city: 'Los Angeles', state: 'CA', zip: '90001', country: 'USA' },
-      buyer_id: 'cccc3333-cccc-3333-cccc-333333333333',
-      seller_id: 'aaaa1111-aaaa-1111-aaaa-111111111111'
+      buyer_id: profiles.buyer.id,
+      seller_id: profiles.seller1.id
     }
-  ], { onConflict: 'id' })
+  ]
+
+  const { data: insertedOrders, error: ordersError } = await supabase
+    .from('orders')
+    .insert(orders)
+    .select()
 
   if (ordersError) {
     console.error('Error creating orders:', ordersError.message)
@@ -244,29 +233,21 @@ async function seed() {
   }
   console.log('✅ Orders created (4 orders)\n')
 
-  // 5. Create order items (need to get product IDs first)
+  // 5. Create order items
   console.log('Creating order items...')
 
-  const { data: allProducts } = await supabase
-    .from('products')
-    .select('id, title, price, seller_id')
-
-  if (!allProducts) {
-    console.error('Could not fetch products for order items')
-    return
-  }
-
-  const getProduct = (title: string) => allProducts.find(p => p.title === title)
+  const getProduct = (title: string) => insertedProducts?.find(p => p.title === title)
+  const getOrder = (orderNumber: string) => insertedOrders?.find(o => o.order_number === orderNumber)
 
   const orderItems = [
-    { order_id: 'dddd1111-dddd-1111-dddd-111111111111', product: getProduct('iPhone 14 Pro Max'), quantity: 1 },
-    { order_id: 'dddd1111-dddd-1111-dddd-111111111111', product: getProduct('Sony WH-1000XM5 Headphones'), quantity: 1 },
-    { order_id: 'dddd2222-dddd-2222-dddd-222222222222', product: getProduct('Nintendo Switch OLED'), quantity: 1 },
-    { order_id: 'dddd3333-dddd-3333-dddd-333333333333', product: getProduct('Nike Air Jordan 1 Retro High'), quantity: 1 },
-    { order_id: 'dddd3333-dddd-3333-dddd-333333333333', product: getProduct("Vintage Levi's 501 Jeans"), quantity: 1 },
-    { order_id: 'dddd4444-dddd-4444-dddd-444444444444', product: getProduct('MacBook Pro 14" M3'), quantity: 1 }
+    { order_id: getOrder('ORD-2024-001')?.id, product: getProduct('iPhone 14 Pro Max'), quantity: 1 },
+    { order_id: getOrder('ORD-2024-001')?.id, product: getProduct('Sony WH-1000XM5 Headphones'), quantity: 1 },
+    { order_id: getOrder('ORD-2024-002')?.id, product: getProduct('Nintendo Switch OLED'), quantity: 1 },
+    { order_id: getOrder('ORD-2024-003')?.id, product: getProduct('Nike Air Jordan 1 Retro High'), quantity: 1 },
+    { order_id: getOrder('ORD-2024-003')?.id, product: getProduct("Vintage Levi's 501 Jeans"), quantity: 1 },
+    { order_id: getOrder('ORD-2024-004')?.id, product: getProduct('MacBook Pro 14" M3'), quantity: 1 }
   ]
-    .filter(item => item.product)
+    .filter(item => item.product && item.order_id)
     .map(item => ({
       order_id: item.order_id,
       product_id: item.product!.id,
@@ -286,12 +267,12 @@ async function seed() {
   console.log('Creating reviews...')
 
   const reviews = [
-    { product: getProduct('iPhone 14 Pro Max'), author_id: 'cccc3333-cccc-3333-cccc-333333333333', rating: 5, comment: 'Absolutely love this phone! Came exactly as described, looks brand new. Fast shipping too!' },
-    { product: getProduct('Sony WH-1000XM5 Headphones'), author_id: 'cccc3333-cccc-3333-cccc-333333333333', rating: 4, comment: 'Great headphones, noise cancellation is amazing. Minor scuff on the case but works perfectly.' },
-    { product: getProduct('Nike Air Jordan 1 Retro High'), author_id: 'cccc3333-cccc-3333-cccc-333333333333', rating: 5, comment: 'Perfect condition Jordans! Authentic and exactly as pictured. Will buy again from this seller.' },
-    { product: getProduct("Vintage Levi's 501 Jeans"), author_id: 'cccc3333-cccc-3333-cccc-333333333333', rating: 4, comment: 'Vintage Levis are fire! Fit is perfect. Took a bit longer to ship but worth the wait.' },
-    { product: getProduct('Herman Miller Aeron Chair'), author_id: 'bbbb2222-bbbb-2222-bbbb-222222222222', rating: 5, comment: 'Got this for my home office. The chair is incredibly comfortable even after 8+ hours of work.' },
-    { product: getProduct('Patagonia Fleece Jacket'), author_id: 'aaaa1111-aaaa-1111-aaaa-111111111111', rating: 5, comment: 'The Patagonia quality never disappoints. Super warm and stylish!' }
+    { product: getProduct('iPhone 14 Pro Max'), author_id: profiles.buyer.id, rating: 5, comment: 'Absolutely love this phone! Came exactly as described, looks brand new. Fast shipping too!' },
+    { product: getProduct('Sony WH-1000XM5 Headphones'), author_id: profiles.buyer.id, rating: 4, comment: 'Great headphones, noise cancellation is amazing. Minor scuff on the case but works perfectly.' },
+    { product: getProduct('Nike Air Jordan 1 Retro High'), author_id: profiles.buyer.id, rating: 5, comment: 'Perfect condition Jordans! Authentic and exactly as pictured. Will buy again from this seller.' },
+    { product: getProduct("Vintage Levi's 501 Jeans"), author_id: profiles.buyer.id, rating: 4, comment: 'Vintage Levis are fire! Fit is perfect. Took a bit longer to ship but worth the wait.' },
+    { product: getProduct('Herman Miller Aeron Chair'), author_id: profiles.seller2.id, rating: 5, comment: 'Got this for my home office. The chair is incredibly comfortable even after 8+ hours of work.' },
+    { product: getProduct('Patagonia Fleece Jacket'), author_id: profiles.seller1.id, rating: 5, comment: 'The Patagonia quality never disappoints. Super warm and stylish!' }
   ]
     .filter(r => r.product)
     .map(r => ({
@@ -311,8 +292,7 @@ async function seed() {
 
   console.log('🎉 Database seeded successfully!')
   console.log('\nSummary:')
-  console.log('  - 3 users (seller1, seller2, buyer1)')
-  console.log('  - 3 profiles (Tech Store, Fashion Hub, John Buyer)')
+  console.log(`  - Using ${existingProfiles?.length} existing profiles from auth.users`)
   console.log('  - 10 products across 5 categories')
   console.log('  - 4 orders (DELIVERED, SHIPPED, PENDING)')
   console.log('  - 6 order items')

@@ -20,6 +20,17 @@ export async function createDispute(orderId: string, prevState: unknown, formDat
     return { error: 'Unauthorized' }
   }
 
+  // Get profile ID from user_id
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!profile) {
+    return { error: 'Profile not found' }
+  }
+
   const data = {
     reason: formData.get('reason') as string,
   }
@@ -42,7 +53,7 @@ export async function createDispute(orderId: string, prevState: unknown, formDat
 
   const order = orderData as { id: string; buyer_id: string; status: string }
 
-  if (order.buyer_id !== user.id) {
+  if (order.buyer_id !== profile.id) {
     return { error: 'Only buyers can open disputes' }
   }
 
@@ -65,7 +76,7 @@ export async function createDispute(orderId: string, prevState: unknown, formDat
     .from('disputes')
     .insert({
       order_id: orderId,
-      opened_by_id: user.id,
+      opened_by_id: profile.id,
       reason: validated.data.reason,
     } as never)
 
@@ -85,6 +96,17 @@ export async function sendDisputeMessage(disputeId: string, prevState: unknown, 
     return { error: 'Unauthorized' }
   }
 
+  // Get profile ID from user_id
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!profile) {
+    return { error: 'Profile not found' }
+  }
+
   const data = { content: formData.get('content') as string }
 
   const validated = messageSchema.safeParse(data)
@@ -96,7 +118,7 @@ export async function sendDisputeMessage(disputeId: string, prevState: unknown, 
     .from('dispute_messages')
     .insert({
       dispute_id: disputeId,
-      author_id: user.id,
+      author_id: profile.id,
       content: validated.data.content
     } as never)
 
@@ -114,6 +136,15 @@ export async function getMyDisputes() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  // Get profile ID from user_id
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!profile) throw new Error('Profile not found')
+
   // Get disputes where user is buyer or seller
   const { data, error } = await supabase
     .from('disputes')
@@ -122,7 +153,7 @@ export async function getMyDisputes() {
       order:orders!inner(*, buyer:profiles!buyer_id(*), seller:profiles!seller_id(*)),
       opened_by:profiles!opened_by_id(*)
     `)
-    .or(`opened_by_id.eq.${user.id},order.buyer_id.eq.${user.id},order.seller_id.eq.${user.id}`)
+    .or(`opened_by_id.eq.${profile.id},order.buyer_id.eq.${profile.id},order.seller_id.eq.${profile.id}`)
     .order('created_at', { ascending: false })
 
   if (error) throw error

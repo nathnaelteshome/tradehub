@@ -11,10 +11,21 @@ export async function GET() {
 
     const supabase = await createClient()
 
+    // Get profile ID from user_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile) {
+      return errorResponse('Profile not found', 'Profile required', 404)
+    }
+
     const { data, error } = await supabase
       .from('orders')
       .select('*, order_items(*, product:products(*)), buyer:profiles!buyer_id(*)')
-      .eq('seller_id', user.id)
+      .eq('seller_id', profile.id)
       .order('created_at', { ascending: false })
 
     if (error) {

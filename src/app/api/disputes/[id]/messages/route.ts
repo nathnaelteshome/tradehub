@@ -37,6 +37,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const supabase = await createClient()
 
+    // Get profile ID from user_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile) {
+      return errorResponse('Profile not found', 'Profile required', 404)
+    }
+
     // Check if dispute exists and user is authorized
     const { data: dispute, error: disputeError } = await supabase
       .from('disputes')
@@ -51,8 +62,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Verify user is buyer, seller, or admin
     const order = dispute.order
     if (
-      order.buyer_id !== user.id &&
-      order.seller_id !== user.id &&
+      order.buyer_id !== profile.id &&
+      order.seller_id !== profile.id &&
       user.role !== 'ADMIN'
     ) {
       return errorResponse('Not authorized', 'You cannot add messages to this dispute', 403)
@@ -68,7 +79,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .from('dispute_messages')
       .insert({
         dispute_id: disputeId,
-        author_id: user.id,
+        author_id: profile.id,
         content: validated.data.content,
       })
       .select('*, author:profiles(*)')

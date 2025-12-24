@@ -1,7 +1,10 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { MAX_IMAGE_SIZE, ALLOWED_IMAGE_TYPES } from '@/lib/constants'
+import cloudinary from '@/lib/cloudinary'
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 export async function uploadProductImage(formData: FormData) {
   const supabase = await createClient()
@@ -17,34 +20,40 @@ export async function uploadProductImage(formData: FormData) {
   }
 
   // Validate file type
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+  if (!ALLOWED_TYPES.includes(file.type)) {
     return { error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.' }
   }
 
   // Validate file size
-  if (file.size > MAX_IMAGE_SIZE) {
+  if (file.size > MAX_FILE_SIZE) {
     return { error: 'File too large. Maximum size is 5MB.' }
   }
 
-  const fileExt = file.name.split('.').pop()
-  const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+  try {
+    // Convert file to base64
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
 
-  const { data, error } = await supabase.storage
-    .from('product-images')
-    .upload(fileName, file)
+    // Upload to Cloudinary
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: `tradehub/${user.id}`,
+      resource_type: 'image',
+      transformation: [
+        { width: 800, height: 800, crop: 'limit' },
+        { quality: 'auto' },
+        { fetch_format: 'auto' }
+      ]
+    })
 
-  if (error) {
-    return { error: error.message }
+    return { url: result.secure_url, public_id: result.public_id }
+  } catch (error) {
+    console.error('Cloudinary upload error:', error)
+    return { error: 'Failed to upload image' }
   }
-
-  const { data: { publicUrl } } = supabase.storage
-    .from('product-images')
-    .getPublicUrl(data.path)
-
-  return { url: publicUrl }
 }
 
-export async function deleteProductImage(url: string) {
+export async function deleteProductImage(url: string, publicId?: string) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -52,24 +61,36 @@ export async function deleteProductImage(url: string) {
     return { error: 'Unauthorized' }
   }
 
-  // Extract path from URL
-  const path = url.split('/product-images/')[1]
-  if (!path) {
-    return { error: 'Invalid image URL' }
+  try {
+    // If publicId is provided, use it directly
+    if (publicId) {
+      // Verify ownership
+      if (!publicId.includes(`tradehub/${user.id}`)) {
+        return { error: 'Unauthorized' }
+      }
+      await cloudinary.uploader.destroy(publicId)
+      return { success: true }
+    }
+
+    // Extract public_id from Cloudinary URL
+    // URL format: https://res.cloudinary.com/{cloud}/image/upload/v{version}/{public_id}.{ext}
+    const matches = url.match(/\/tradehub\/[^/]+\/[^.]+/)
+    if (!matches) {
+      // If we can't extract public_id, just return success (image might be from old system)
+      return { success: true }
+    }
+
+    const extractedPublicId = matches[0].slice(1) // Remove leading slash
+
+    // Verify ownership
+    if (!extractedPublicId.includes(`tradehub/${user.id}`)) {
+      return { error: 'Unauthorized' }
+    }
+
+    await cloudinary.uploader.destroy(extractedPublicId)
+    return { success: true }
+  } catch (error) {
+    console.error('Cloudinary delete error:', error)
+    return { error: 'Failed to delete image' }
   }
-
-  // Verify ownership
-  if (!path.startsWith(user.id)) {
-    return { error: 'Unauthorized' }
-  }
-
-  const { error } = await supabase.storage
-    .from('product-images')
-    .remove([path])
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  return { success: true }
 }

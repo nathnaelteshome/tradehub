@@ -83,10 +83,19 @@ export async function getMyProducts() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  // Get profile ID from user_id
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!profile) throw new Error('Profile not found')
+
   const { data, error } = await supabase
     .from('products')
     .select('*')
-    .eq('seller_id', user.id)
+    .eq('seller_id', profile.id)
     .order('created_at', { ascending: false })
 
   if (error) throw error
@@ -99,6 +108,17 @@ export async function createProduct(prevState: unknown, formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { error: 'Unauthorized' }
+  }
+
+  // Get profile ID from user_id
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!profile) {
+    return { error: 'Profile not found' }
   }
 
   const imagesRaw = formData.get('images') as string
@@ -126,7 +146,7 @@ export async function createProduct(prevState: unknown, formData: FormData) {
 
   const { error } = await supabase
     .from('products')
-    .insert({ ...validated.data, seller_id: user.id } as never)
+    .insert({ ...validated.data, seller_id: profile.id } as never)
 
   if (error) {
     return { error: error.message }
@@ -143,6 +163,17 @@ export async function updateProduct(id: string, prevState: unknown, formData: Fo
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return { error: 'Unauthorized' }
+  }
+
+  // Get profile ID from user_id
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!profile) {
+    return { error: 'Profile not found' }
   }
 
   const imagesRaw = formData.get('images') as string
@@ -172,7 +203,7 @@ export async function updateProduct(id: string, prevState: unknown, formData: Fo
     .from('products')
     .update(validated.data as never)
     .eq('id', id)
-    .eq('seller_id', user.id)
+    .eq('seller_id', profile.id)
 
   if (error) {
     return { error: error.message }

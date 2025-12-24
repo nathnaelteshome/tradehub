@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getProfile } from '@/lib/auth/get-profile'
 import { Header } from '@/components/shared/header'
 import { AdminSidebar } from '@/components/admin/admin-sidebar'
 
@@ -11,16 +12,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/auth/login')
   }
 
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  const { profile, error } = await getProfile()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const profile = profileData as any
+  if (error || !profile) {
+    console.error('Admin layout: Profile error:', error)
+    redirect('/auth/login?error=profile_error')
+  }
 
-  if (profile?.role !== 'ADMIN') {
+  if (profile.suspended) {
+    redirect('/suspended')
+  }
+
+  if (profile.role !== 'ADMIN') {
     redirect('/dashboard')
   }
 

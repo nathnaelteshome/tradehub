@@ -33,6 +33,7 @@ export function ProductForm({ product, action }: ProductFormProps) {
   const [state, formAction] = useActionState(action, null)
   const [images, setImages] = useState<string[]>(product?.images || [])
   const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,6 +41,7 @@ export function ProductForm({ product, action }: ProductFormProps) {
     if (!files || files.length === 0) return
 
     setUploading(true)
+    setUploadError(null)
     const newImages = [...images]
 
     for (const file of Array.from(files)) {
@@ -49,6 +51,10 @@ export function ProductForm({ product, action }: ProductFormProps) {
       formData.append('file', file)
 
       const result = await uploadProductImage(formData)
+      if (result.error) {
+        setUploadError(result.error)
+        break
+      }
       if (result.url) {
         newImages.push(result.url)
       }
@@ -72,9 +78,9 @@ export function ProductForm({ product, action }: ProductFormProps) {
     <form action={formAction} className="space-y-6">
       <input type="hidden" name="images" value={JSON.stringify(images)} />
 
-      {state?.error && (
+      {(state?.error || uploadError) && (
         <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
-          {state.error}
+          {state?.error || uploadError}
         </div>
       )}
 

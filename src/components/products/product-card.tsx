@@ -7,13 +7,14 @@ import type { ProductWithSeller } from '@/types'
 
 interface ProductCardProps {
   product: ProductWithSeller
+  className?: string
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, className }: ProductCardProps) {
   return (
-    <Link href={`/products/${product.id}`}>
+    <Link href={`/products/${product.id}`} className={className}>
       <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow">
-        <div className="aspect-square relative bg-muted">
+        <div className="aspect-square relative bg-muted overflow-hidden">
           {product.images[0] ? (
             <Image
               src={product.images[0]}

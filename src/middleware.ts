@@ -29,14 +29,28 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Fetch user profile to check role
-    const { data: profile } = await supabase
+    // Use maybeSingle() to prevent crash on missing profile
+    const { data: profile, error } = await supabase
       .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+      .select('role, suspended')
+      .eq('user_id', user.id)
+      .maybeSingle()
 
-    if (profile?.role !== 'ADMIN') {
+    if (error) {
+      console.error('Middleware: Profile fetch error:', error.message)
+      return NextResponse.redirect(new URL('/auth/login?error=profile_error', request.url))
+    }
+
+    if (!profile) {
+      console.error('Middleware: Profile missing for user:', user.id)
+      return NextResponse.redirect(new URL('/auth/login?error=profile_missing', request.url))
+    }
+
+    if (profile.suspended) {
+      return NextResponse.redirect(new URL('/suspended', request.url))
+    }
+
+    if (profile.role !== 'ADMIN') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }

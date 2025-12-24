@@ -2,16 +2,22 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ProductGrid } from '@/components/products/product-grid'
 import { getFeaturedProducts } from '@/actions/products'
+import { getProfile } from '@/lib/auth/get-profile'
 import { ArrowRight, ShoppingBag, Shield, Users } from 'lucide-react'
 
 export default async function HomePage() {
-  const products = await getFeaturedProducts()
+  const [products, { profile }] = await Promise.all([
+    getFeaturedProducts(),
+    getProfile()
+  ])
+
+  const isLoggedIn = !!profile
 
   return (
     <div>
       {/* Hero Section */}
       <section className="py-20 px-4 bg-gradient-to-b from-muted/50 to-background">
-        <div className="container text-center">
+        <div className="container mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
             Buy & Sell with Confidence
           </h1>
@@ -27,7 +33,9 @@ export default async function HomePage() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link href="/auth/register">Start Selling</Link>
+              <Link href={isLoggedIn ? "/dashboard/products/new" : "/auth/register"}>
+                Start Selling
+              </Link>
             </Button>
           </div>
         </div>
@@ -35,7 +43,7 @@ export default async function HomePage() {
 
       {/* Features Section */}
       <section className="py-16 px-4">
-        <div className="container">
+        <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center p-6">
               <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -70,7 +78,7 @@ export default async function HomePage() {
 
       {/* Featured Products */}
       <section className="py-16 px-4 bg-muted/30">
-        <div className="container">
+        <div className="container mx-auto">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold">Featured Products</h2>
             <Button variant="ghost" asChild>
@@ -84,18 +92,20 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 px-4">
-        <div className="container text-center">
-          <h2 className="text-3xl font-bold">Ready to start trading?</h2>
-          <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
-            Join TradeHub today and become part of our growing marketplace community.
-          </p>
-          <Button size="lg" className="mt-8" asChild>
-            <Link href="/auth/register">Create Free Account</Link>
-          </Button>
-        </div>
-      </section>
+      {/* CTA Section - Only show for logged out users */}
+      {!isLoggedIn && (
+        <section className="py-20 px-4">
+          <div className="container mx-auto text-center">
+            <h2 className="text-3xl font-bold">Ready to start trading?</h2>
+            <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
+              Join TradeHub today and become part of our growing marketplace community.
+            </p>
+            <Button size="lg" className="mt-8" asChild>
+              <Link href="/auth/register">Create Free Account</Link>
+            </Button>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

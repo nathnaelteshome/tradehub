@@ -22,10 +22,21 @@ export async function GET() {
 
     const supabase = await createClient()
 
+    // Get profile ID from user_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile) {
+      return errorResponse('Profile not found', 'Profile required', 404)
+    }
+
     const { data, error } = await supabase
       .from('orders')
       .select('*, order_items(*, product:products(*)), seller:profiles!seller_id(*)')
-      .eq('buyer_id', user.id)
+      .eq('buyer_id', profile.id)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -67,12 +78,23 @@ export async function POST(request: NextRequest) {
       return errorResponse('Seller ID is required', 'Validation failed', 400)
     }
 
-    // Cannot buy from yourself
-    if (sellerId === user.id) {
-      return errorResponse('Cannot purchase your own products', 'Validation failed', 400)
+    const supabase = await createClient()
+
+    // Get profile ID from user_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile) {
+      return errorResponse('Profile not found', 'Profile required', 404)
     }
 
-    const supabase = await createClient()
+    // Cannot buy from yourself
+    if (sellerId === profile.id) {
+      return errorResponse('Cannot purchase your own products', 'Validation failed', 400)
+    }
 
     // Validate all products exist and are active
     const productIds = items.map((item: { productId: string }) => item.productId)
@@ -132,7 +154,7 @@ export async function POST(request: NextRequest) {
       .from('orders')
       .insert({
         order_number: orderNumber,
-        buyer_id: user.id,
+        buyer_id: profile.id,
         seller_id: sellerId,
         total_amount: totalAmount,
         shipping_address: validatedShipping.data,
@@ -173,7 +195,7 @@ export async function POST(request: NextRequest) {
     const { data: buyerProfile } = await supabase
       .from('profiles')
       .select('email')
-      .eq('id', user.id)
+      .eq('id', profile.id)
       .single()
 
     // Send order confirmation email

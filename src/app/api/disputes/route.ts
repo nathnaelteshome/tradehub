@@ -19,6 +19,17 @@ export async function GET() {
 
     const supabase = await createClient()
 
+    // Get profile ID from user_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile) {
+      return errorResponse('Profile not found', 'Profile required', 404)
+    }
+
     // Get disputes where user is buyer or seller of the order
     const { data, error } = await supabase
       .from('disputes')
@@ -39,9 +50,9 @@ export async function GET() {
     const disputes = (data ?? []) as unknown as DisputeDetail[]
     const userDisputes = disputes.filter(
       (dispute) =>
-        dispute.opened_by_id === user.id ||
-        dispute.order.buyer_id === user.id ||
-        dispute.order.seller_id === user.id
+        dispute.opened_by_id === profile.id ||
+        dispute.order.buyer_id === profile.id ||
+        dispute.order.seller_id === profile.id
     )
 
     return successResponse(userDisputes, 'Disputes fetched successfully')
@@ -71,6 +82,17 @@ export async function POST(request: NextRequest) {
     const { orderId, reason } = validated.data
     const supabase = await createClient()
 
+    // Get profile ID from user_id
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile) {
+      return errorResponse('Profile not found', 'Profile required', 404)
+    }
+
     // Check if order exists and user is buyer
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -82,7 +104,7 @@ export async function POST(request: NextRequest) {
       return errorResponse('Order not found', 'Order not found', 404)
     }
 
-    if (order.buyer_id !== user.id) {
+    if (order.buyer_id !== profile.id) {
       return errorResponse('Only buyers can open disputes', 'Not authorized', 403)
     }
 
@@ -110,7 +132,7 @@ export async function POST(request: NextRequest) {
       .from('disputes')
       .insert({
         order_id: orderId,
-        opened_by_id: user.id,
+        opened_by_id: profile.id,
         reason,
       })
       .select()
