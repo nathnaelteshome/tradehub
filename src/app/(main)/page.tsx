@@ -141,39 +141,41 @@ export default async function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 border-t">
+      <section className="py-24 px-4 relative">
+        <div className="divider-fade mb-24" />
         <div className="container mx-auto">
-          <div className="text-center mb-12">
+          <div className="text-center mb-16">
+            <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-4 block">Features</span>
             <h2 className="text-3xl md:text-4xl font-bold">Why Choose TradeHub?</h2>
             <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
               Everything you need for a seamless trading experience
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="glass-subtle rounded-2xl text-center p-8 hover:scale-[1.02] transition-transform">
-              <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 stagger-children">
+            <div className="glass-subtle rounded-2xl text-center p-8 card-interactive group">
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center mb-6 group-hover:bg-primary/10 transition-colors border border-primary/10">
                 <ShoppingBag className="h-7 w-7 text-primary" />
               </div>
               <h3 className="text-lg font-semibold">Easy Selling</h3>
-              <p className="mt-2 text-muted-foreground">
+              <p className="mt-3 text-muted-foreground text-sm leading-relaxed">
                 List your items in minutes with our simple listing process.
               </p>
             </div>
-            <div className="glass-subtle rounded-2xl text-center p-8 hover:scale-[1.02] transition-transform">
-              <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <div className="glass-subtle rounded-2xl text-center p-8 card-interactive group">
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center mb-6 group-hover:bg-primary/10 transition-colors border border-primary/10">
                 <Shield className="h-7 w-7 text-primary" />
               </div>
               <h3 className="text-lg font-semibold">Secure Transactions</h3>
-              <p className="mt-2 text-muted-foreground">
+              <p className="mt-3 text-muted-foreground text-sm leading-relaxed">
                 Our dispute resolution system protects both buyers and sellers.
               </p>
             </div>
-            <div className="glass-subtle rounded-2xl text-center p-8 hover:scale-[1.02] transition-transform">
-              <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+            <div className="glass-subtle rounded-2xl text-center p-8 card-interactive group">
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center mb-6 group-hover:bg-primary/10 transition-colors border border-primary/10">
                 <TrendingUp className="h-7 w-7 text-primary" />
               </div>
               <h3 className="text-lg font-semibold">Trusted Community</h3>
-              <p className="mt-2 text-muted-foreground">
+              <p className="mt-3 text-muted-foreground text-sm leading-relaxed">
                 Join thousands of verified buyers and sellers.
               </p>
             </div>
@@ -182,18 +184,20 @@ export default async function HomePage() {
       </section>
 
       {/* Featured Products - Glass background */}
-      <section className="py-20 px-4 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/30 to-transparent -z-10" />
+      <section className="py-24 px-4 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/20 to-transparent -z-10" />
+        <div className="absolute inset-0 line-pattern -z-10" />
         <div className="container mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-10">
             <div>
+              <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2 block">Marketplace</span>
               <h2 className="text-2xl md:text-3xl font-bold">Featured Products</h2>
               <p className="text-muted-foreground mt-1">Discover amazing deals today</p>
             </div>
-            <Button variant="ghost" asChild>
+            <Button variant="outline" className="group hover-lift" asChild>
               <Link href="/products">
                 View all
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
           </div>
@@ -203,20 +207,34 @@ export default async function HomePage() {
 
       {/* CTA Section */}
       {!isLoggedIn && (
-        <section className="py-20 px-4">
+        <section className="py-24 px-4 relative">
           <div className="container mx-auto">
-            <div className="glass rounded-3xl p-12 text-center max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold">Ready to start trading?</h2>
-              <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
-                Join TradeHub today and become part of our growing marketplace community.
-              </p>
-              <Button size="lg" className="mt-8 text-lg px-8" asChild>
-                <Link href="/auth/register">Create Free Account</Link>
-              </Button>
+            <div className="glass rounded-3xl p-12 md:p-16 text-center max-w-3xl mx-auto relative overflow-hidden glow-hover">
+              {/* Background pattern */}
+              <div className="absolute inset-0 dot-grid opacity-30" />
+
+              <div className="relative z-10">
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-primary/5 border border-primary/10 text-primary mb-6">
+                  Get Started
+                </span>
+                <h2 className="text-3xl md:text-4xl font-bold">Ready to start trading?</h2>
+                <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
+                  Join TradeHub today and become part of our growing marketplace community.
+                </p>
+                <Button size="lg" className="mt-8 text-lg px-8 hover-lift group" asChild>
+                  <Link href="/auth/register">
+                    Create Free Account
+                    <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>
       )}
+
+      {/* Footer spacing */}
+      <div className="h-12" />
     </div>
   )
 }

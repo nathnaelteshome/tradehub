@@ -1,10 +1,10 @@
-import { CheckoutForm } from '@/components/checkout/checkout-form'
+import { CheckoutForm } from "@/components/checkout/checkout-form";
 
 export default function CheckoutPage() {
   return (
     <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+      {/* <h1 className="text-3xl font-bold mb-8">Checkout</h1> */}
       <CheckoutForm />
     </div>
-  )
+  );
 }
