@@ -72,7 +72,7 @@ export async function GET(request: Request) {
 
     if (insertError) {
       console.error('Auth callback: Profile creation failed:', insertError.message)
-      // Don't fail the redirect - user can try again
+      return NextResponse.redirect(`${origin}/auth/login?error=profile_creation_failed`)
     }
   }
 
