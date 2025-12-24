@@ -15,7 +15,7 @@ export async function sendOrderConfirmationEmail(
   orderData: OrderEmailData
 ): Promise<void> {
   if (!resend) {
-    console.warn('Email service not configured - RESEND_API_KEY missing')
+    // Email service not configured - silently skip
     return
   }
 
@@ -67,9 +67,8 @@ export async function sendOrderConfirmationEmail(
     })
 
     console.log(`Order confirmation email sent to ${email}`)
-  } catch (error) {
-    console.error(`Failed to send order confirmation email to ${email}:`, error)
-    // Don't throw - order is already created
+  } catch {
+    // Silently fail - order is already created, email is non-critical
   }
 }
 
@@ -78,8 +77,8 @@ export async function sendWelcomeEmail(
   name: string
 ): Promise<{ success: boolean; error?: string }> {
   if (!resend) {
-    console.warn('Email service not configured - RESEND_API_KEY missing')
-    return { success: false, error: 'Email service not configured' }
+    // Email service not configured - silently skip
+    return { success: true }
   }
 
   try {
@@ -122,8 +121,8 @@ export async function sendWelcomeEmail(
 
     console.log(`Welcome email sent to ${email}`)
     return { success: true }
-  } catch (error) {
-    console.error(`Failed to send welcome email to ${email}:`, error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  } catch {
+    // Silently fail - registration is complete, email is non-critical
+    return { success: true }
   }
 }

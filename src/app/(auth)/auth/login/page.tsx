@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 export default function LoginPage() {
   return (
-    <Card>
+    <Card variant="glass" className="animate-fade-in-up">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Sign in</CardTitle>
         <CardDescription>

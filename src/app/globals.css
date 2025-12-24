@@ -123,3 +123,106 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ========================================
+   GLASSMORPHISM DESIGN SYSTEM
+   ======================================== */
+
+/* Glass effect utilities */
+.glass {
+  background: oklch(1 0 0 / 60%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid oklch(1 0 0 / 20%);
+  box-shadow: 0 8px 32px oklch(0 0 0 / 10%);
+}
+
+.dark .glass {
+  background: oklch(0.2 0 0 / 50%);
+  border: 1px solid oklch(1 0 0 / 10%);
+  box-shadow: 0 8px 32px oklch(0 0 0 / 40%);
+}
+
+.glass-subtle {
+  background: oklch(1 0 0 / 40%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid oklch(1 0 0 / 15%);
+}
+
+.dark .glass-subtle {
+  background: oklch(0.15 0 0 / 40%);
+  border: 1px solid oklch(1 0 0 / 8%);
+}
+
+/* Glow effects */
+.glow {
+  box-shadow: 0 0 20px oklch(0.6 0.2 250 / 40%), 0 0 40px oklch(0.7 0.15 180 / 30%);
+}
+
+.dark .glow {
+  box-shadow: 0 0 20px oklch(0.6 0.25 250 / 50%), 0 0 40px oklch(0.5 0.2 180 / 40%);
+}
+
+.glow-sm {
+  box-shadow: 0 0 10px oklch(0.6 0.2 250 / 40%);
+}
+
+.dark .glow-sm {
+  box-shadow: 0 0 10px oklch(0.6 0.25 250 / 50%);
+}
+
+/* Animated mesh gradient background */
+.mesh-gradient {
+  background:
+    radial-gradient(at 40% 20%, oklch(0.85 0.12 250) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, oklch(0.8 0.15 300) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, oklch(0.88 0.1 200) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, oklch(0.75 0.14 280) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, oklch(0.85 0.12 250) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, oklch(0.8 0.15 300) 0px, transparent 50%);
+  background-size: 200% 200%;
+  animation: mesh-move 20s ease-in-out infinite;
+}
+
+.dark .mesh-gradient {
+  background:
+    radial-gradient(at 40% 20%, oklch(0.35 0.15 250) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, oklch(0.3 0.2 300) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, oklch(0.4 0.12 200) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, oklch(0.25 0.18 280) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, oklch(0.35 0.15 250) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, oklch(0.3 0.2 300) 0px, transparent 50%);
+  background-size: 200% 200%;
+  animation: mesh-move 20s ease-in-out infinite;
+}
+
+@keyframes mesh-move {
+  0%, 100% { background-position: 0% 0%; }
+  25% { background-position: 50% 25%; }
+  50% { background-position: 100% 50%; }
+  75% { background-position: 50% 75%; }
+}
+
+/* Fade in up animation */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+/* Animation delay utilities */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
