@@ -67,7 +67,7 @@ export async function register(prevState: unknown, formData: FormData) {
     // Don't fail registration if email fails
   }
 
-  return { success: 'Account created! Check your email for a welcome message.' }
+  redirect('/dashboard')
 }
 
 export async function forgotPassword(prevState: unknown, formData: FormData) {
