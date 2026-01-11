@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
-import { resetPassword } from '@/actions/auth'
+import { resetPassword, type AuthActionResult } from '@/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,11 +19,11 @@ function SubmitButton() {
 }
 
 export function ResetPasswordForm() {
-  const [state, formAction] = useActionState(resetPassword, null)
+  const [state, formAction] = useActionState<AuthActionResult, FormData>(resetPassword, null)
 
   return (
     <form action={formAction} className="space-y-4">
-      {state?.error && (
+      {state && 'error' in state && (
         <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
           {state.error}
         </div>

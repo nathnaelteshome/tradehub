@@ -6,7 +6,7 @@ const protectedRoutes = ['/checkout', '/dashboard']
 const adminRoutes = ['/admin']
 
 export async function middleware(request: NextRequest) {
-  const { supabaseResponse, user, supabase } = await updateSession(request)
+  const { supabaseResponse, user } = await updateSession(request)
   const pathname = request.nextUrl.pathname
 
   // Check if accessing auth routes while logged in
@@ -21,37 +21,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Check admin routes
+  // Check admin routes - only verify user is logged in
+  // Role checking is done in the admin layout/page server component
   if (adminRoutes.some(route => pathname.startsWith(route))) {
     if (!user) {
       const redirectUrl = new URL('/auth/login', request.url)
       redirectUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(redirectUrl)
-    }
-
-    // Use maybeSingle() to prevent crash on missing profile
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('role, suspended')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    if (error) {
-      console.error('Middleware: Profile fetch error:', error.message)
-      return NextResponse.redirect(new URL('/auth/login?error=profile_error', request.url))
-    }
-
-    if (!profile) {
-      console.error('Middleware: Profile missing for user:', user.id)
-      return NextResponse.redirect(new URL('/auth/login?error=profile_missing', request.url))
-    }
-
-    if (profile.suspended) {
-      return NextResponse.redirect(new URL('/suspended', request.url))
-    }
-
-    if (profile.role !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
 

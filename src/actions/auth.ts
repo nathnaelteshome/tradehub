@@ -4,7 +4,9 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema } from '@/lib/validations/auth'
 
-export async function login(prevState: unknown, formData: FormData) {
+export type AuthActionResult = { error: string } | { success: string } | null
+
+export async function login(prevState: AuthActionResult, formData: FormData): Promise<AuthActionResult> {
   const supabase = await createClient()
 
   const data = {
@@ -26,7 +28,7 @@ export async function login(prevState: unknown, formData: FormData) {
   redirect('/dashboard')
 }
 
-export async function register(prevState: unknown, formData: FormData) {
+export async function register(prevState: AuthActionResult, formData: FormData): Promise<AuthActionResult> {
   const supabase = await createClient()
 
   const data = {
@@ -70,7 +72,7 @@ export async function register(prevState: unknown, formData: FormData) {
   redirect('/dashboard')
 }
 
-export async function forgotPassword(prevState: unknown, formData: FormData) {
+export async function forgotPassword(prevState: AuthActionResult, formData: FormData): Promise<AuthActionResult> {
   const supabase = await createClient()
 
   const data = { email: formData.get('email') as string }
@@ -91,7 +93,7 @@ export async function forgotPassword(prevState: unknown, formData: FormData) {
   return { success: 'Check your email for a password reset link' }
 }
 
-export async function resetPassword(prevState: unknown, formData: FormData) {
+export async function resetPassword(prevState: AuthActionResult, formData: FormData): Promise<AuthActionResult> {
   const supabase = await createClient()
 
   const data = {

@@ -2,7 +2,7 @@
 
 import { useActionState, useTransition } from 'react'
 import { useFormStatus } from 'react-dom'
-import { register, signInWithGoogle } from '@/actions/auth'
+import { register, signInWithGoogle, type AuthActionResult } from '@/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -42,7 +42,7 @@ function GoogleIcon() {
 }
 
 export function RegisterForm() {
-  const [state, formAction] = useActionState(register, null)
+  const [state, formAction] = useActionState<AuthActionResult, FormData>(register, null)
   const [isPending, startTransition] = useTransition()
 
   const handleGoogleSignIn = () => {
@@ -51,7 +51,7 @@ export function RegisterForm() {
     })
   }
 
-  if (state?.success) {
+  if (state && 'success' in state) {
     return (
       <div className="flex flex-col items-center gap-4 py-8">
         <CheckCircle className="h-12 w-12 text-green-500" />
@@ -63,7 +63,7 @@ export function RegisterForm() {
   return (
     <div className="space-y-4">
       <form action={formAction} className="space-y-4">
-        {state?.error && (
+        {state && 'error' in state && (
           <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
             {state.error}
           </div>
